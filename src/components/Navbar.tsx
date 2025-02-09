@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Bars3Icon, XMarkIcon } from '@heroicons/react/24/outline';
+import boniLogo from '../../boni-logo.jpg';
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -14,7 +15,7 @@ const Navbar = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           <div className="flex items-center gap-3">
-            <img src="../../boni-logo.jpg" alt="Boni Logo" className="h-8 w-8 rounded-full object-cover" />
+            <img src={boniLogo} alt="Boni Logo" className="h-8 w-8 rounded-full object-cover" />
             <h2 className="text-white font-semibold">Boni İçerik Yönetim Paneli</h2>
           </div>
           <div className="hidden md:block">

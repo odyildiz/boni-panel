@@ -7,9 +7,13 @@
     "dev": "vite",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "predeploy": "npm run build",
+    "add-domain": "echo \"panel.bonigraphy.com\" > dist/CNAME",
+    "deploy": "npm run add-domain && gh-pages -d dist"
   },
   "dependencies": {
+    "gh-pages": "^6.3.0",
     "@headlessui/react": "^1.7.17",
     "@heroicons/react": "^2.0.18",
     "autoprefixer": "^10.4.16",
