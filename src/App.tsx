@@ -1,6 +1,6 @@
 import './App.css'
 
-import { HashRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { HashRouter as Router, Routes, Route } from 'react-router-dom';
 import Navbar from './components/Navbar';
 import MenuContent from './pages/MenuContent';
 import GeneralContent from './pages/GeneralContent';
