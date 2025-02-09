@@ -1,5 +1,6 @@
 {
   "name": "boni-panel",
+  "homepage": "https://panel.bonigraphy.com/",
   "private": true,
   "version": "0.0.0",
   "type": "module",

@@ -58,14 +58,14 @@ const Navbar = () => {
             className="text-white hover:bg-gray-700 block px-3 py-2 rounded-md text-base font-medium"
             onClick={() => setIsOpen(false)}
           >
-            Menu Content
+            Menü İçeriği
           </Link>
           <Link
             to="/general-content"
             className="text-white hover:bg-gray-700 block px-3 py-2 rounded-md text-base font-medium"
             onClick={() => setIsOpen(false)}
           >
-            General Content
+            Genel İçerikler
           </Link>
         </div>
       </div>
