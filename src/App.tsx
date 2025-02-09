@@ -5,6 +5,7 @@ import Navbar from './components/Navbar';
 import MenuContent from './pages/MenuContent';
 import GeneralContent from './pages/GeneralContent';
 import MenuItems from './pages/MenuItems';
+import Home from './pages/Home';
 
 function App() {
   return (
@@ -13,7 +14,7 @@ function App() {
         <Navbar />
         <div className="flex items-center justify-center mt-16">
           <Routes>
-            <Route path="/" element={<Navigate to="/" replace />} />
+            <Route path="/" element={<Home />} />
             <Route path="/menu-content" element={<MenuContent />} />
             <Route path="/general-content" element={<GeneralContent />} />
             <Route path="/menu-items/:categoryId" element={<MenuItems />} />
