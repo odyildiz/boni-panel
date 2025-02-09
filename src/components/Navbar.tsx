@@ -14,10 +14,10 @@ const Navbar = () => {
     <nav className="fixed top-0 left-0 right-0 z-40 bg-gray-800">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
-          <div className="flex items-center gap-3">
+          <Link to="/" className="flex items-center gap-3">
             <img src={boniLogo} alt="Boni Logo" className="h-8 w-8 rounded-full object-cover" />
-            <h2 className="text-white font-semibold">Boni İçerik Yönetim Paneli</h2>
-          </div>
+            <h2 className="text-white font-semibold hover:text-gray-300">Boni İçerik Yönetim Paneli</h2>
+          </Link>
           <div className="hidden md:block">
             <div className="ml-10 flex items-baseline space-x-4">
               <Link
