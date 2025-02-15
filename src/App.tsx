@@ -6,22 +6,28 @@ import MenuContent from './pages/MenuContent';
 import GeneralContent from './pages/GeneralContent';
 import MenuItems from './pages/MenuItems';
 import Home from './pages/Home';
+import { Login } from './pages/Login';
+import { PrivateRoute } from './components/PrivateRoute';
+import { AuthProvider } from './contexts/AuthContext';
 
 function App() {
   return (
-    <Router>
-      <div className="min-h-screen flex flex-col">
-        <Navbar />
-        <div className="flex items-center justify-center mt-16">
-          <Routes>
-            <Route path="/" element={<Home />} />
-            <Route path="/menu-content" element={<MenuContent />} />
-            <Route path="/general-content" element={<GeneralContent />} />
-            <Route path="/menu-items/:categoryId" element={<MenuItems />} />
-          </Routes>
+    <AuthProvider>
+      <Router>
+        <div className="min-h-screen flex flex-col">
+          <Navbar />
+          <div className="flex items-center justify-center mt-16">
+            <Routes>
+              <Route path="/login" element={<Login />} />
+              <Route path="/" element={<PrivateRoute><Home /></PrivateRoute>} />
+              <Route path="/menu-content" element={<PrivateRoute><MenuContent /></PrivateRoute>} />
+              <Route path="/general-content" element={<PrivateRoute><GeneralContent /></PrivateRoute>} />
+              <Route path="/menu-items/:categoryId" element={<PrivateRoute><MenuItems /></PrivateRoute>} />
+            </Routes>
+          </div>
         </div>
-      </div>
-    </Router>
+      </Router>
+    </AuthProvider>
   );
 }
 
