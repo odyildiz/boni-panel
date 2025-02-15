@@ -16,10 +16,12 @@ const MenuItems = () => {
   const [items, setItems] = useState<MenuItem[]>([]);
   const [categoryName, setCategoryName] = useState('');
   const [newItemName, setNewItemName] = useState('');
+  const [newItemNameEn, setNewItemNameEn] = useState('');
   const [newItemPrice1, setNewItemPrice1] = useState('');
   const [newItemPrice2, setNewItemPrice2] = useState('');
   const [editingItem, setEditingItem] = useState<MenuItem | null>(null);
   const [editingItemName, setEditingItemName] = useState('');
+  const [editingItemNameEn, setEditingItemNameEn] = useState('');
   const [editingItemPrice1, setEditingItemPrice1] = useState('');
   const [editingItemPrice2, setEditingItemPrice2] = useState('');
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
@@ -50,15 +52,16 @@ const MenuItems = () => {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newItemName.trim() || !newItemPrice1.trim() || !categoryId) return;
+    if (!newItemName.trim() || !newItemNameEn.trim() || !newItemPrice1.trim() || !categoryId) return;
 
     const price1 = parseFloat(newItemPrice1);
     const price2 = parseFloat(newItemPrice2);
 
     if (isNaN(price1)) return;
 
-    menuItemService.create(categoryId, newItemName, price1, price2);
+    menuItemService.create(categoryId, newItemName, newItemNameEn, price1, price2);
     setNewItemName('');
+    setNewItemNameEn('');
     setNewItemPrice1('');
     setNewItemPrice2('');
     loadItems();
@@ -67,6 +70,7 @@ const MenuItems = () => {
   const handleEdit = (item: MenuItem) => {
     setEditingItem(item);
     setEditingItemName(item.name);
+    setEditingItemNameEn(item.nameEn);
     setEditingItemPrice1(item.price1.toString());
     setEditingItemPrice2(item.price2 ? item.price2.toString() : '');
     setIsEditModalOpen(true);
@@ -74,16 +78,17 @@ const MenuItems = () => {
 
   const handleEditSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!editingItemName.trim() || !editingItemPrice1.trim() || !editingItem) return;
+    if (!editingItemName.trim() || !editingItemNameEn.trim() || !editingItemPrice1.trim() || !editingItem) return;
 
     const price1 = parseFloat(editingItemPrice1);
     const price2 = parseFloat(editingItemPrice2);
 
     if (isNaN(price1)) return;
 
-    menuItemService.update(editingItem.id, editingItemName, price1, price2);
+    menuItemService.update(editingItem.id, editingItemName, editingItemNameEn, price1, price2);
     setEditingItem(null);
     setEditingItemName('');
+    setEditingItemNameEn('');
     setEditingItemPrice1('');
     setEditingItemPrice2('');
     setIsEditModalOpen(false);
@@ -115,8 +120,15 @@ const MenuItems = () => {
             type="text"
             value={newItemName}
             onChange={(e) => setNewItemName(e.target.value)}
-            placeholder="Menü Öğesi İsmi *"
-            className="col-span-2 p-2 border border-gray-300 rounded focus:outline-none focus:border-blue-500"
+            placeholder="Menü Öğesi İsmi (Türkçe) *"
+            className="p-2 border border-gray-300 rounded focus:outline-none focus:border-blue-500"
+          />
+          <input
+            type="text"
+            value={newItemNameEn}
+            onChange={(e) => setNewItemNameEn(e.target.value)}
+            placeholder="Menu Item Name (English) *"
+            className="p-2 border border-gray-300 rounded focus:outline-none focus:border-blue-500"
           />
           <input
             type="number"
@@ -149,7 +161,10 @@ const MenuItems = () => {
             {items.map((item) => (
               <li key={item.id} className="p-4 flex items-center justify-between">
                 <div>
-                  <span className="text-gray-900 font-medium">{item.name}</span>
+                  <div>
+                    <span className="text-gray-900 font-medium">{item.name}</span>
+                    <span className="text-gray-500 text-sm ml-2">({item.nameEn})</span>
+                  </div>
                   <div className="text-sm text-gray-500">
                     <span className="mr-4">Fiyat 1: ₺{item.price1}</span>
                     {item.price2 ? <span>Fiyat 2: ₺{item.price2}</span> : null}
@@ -180,13 +195,22 @@ const MenuItems = () => {
           <div className="bg-white p-6 rounded-lg shadow-lg w-full max-w-md">
             <h2 className="text-xl font-semibold mb-4">Edit Menu Item</h2>
             <form onSubmit={handleEditSubmit}>
-              <input
-                type="text"
-                value={editingItemName}
-                onChange={(e) => setEditingItemName(e.target.value)}
-                placeholder="Menu Item Name *"
-                className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:border-blue-500 mb-4"
-              />
+              <div className="grid grid-cols-1 gap-4 mb-4">
+                <input
+                  type="text"
+                  value={editingItemName}
+                  onChange={(e) => setEditingItemName(e.target.value)}
+                  placeholder="Menü Öğesi İsmi (Türkçe) *"
+                  className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:border-blue-500"
+                />
+                <input
+                  type="text"
+                  value={editingItemNameEn}
+                  onChange={(e) => setEditingItemNameEn(e.target.value)}
+                  placeholder="Menu Item Name (English) *"
+                  className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:border-blue-500"
+                />
+              </div>
               <div className="grid grid-cols-2 gap-4 mb-4">
                 <input
                   type="number"

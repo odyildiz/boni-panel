@@ -2,6 +2,7 @@ interface MenuItem {
   id: string;
   categoryId: string;
   name: string;
+  nameEn: string;
   price1: number;
   price2: number;
 }
@@ -15,11 +16,12 @@ export const menuItemService = {
     return allItems.filter((item: MenuItem) => item.categoryId === categoryId);
   },
 
-  create: (categoryId: string, name: string, price1: number, price2: number): MenuItem => {
+  create: (categoryId: string, name: string, nameEn: string, price1: number, price2: number): MenuItem => {
     const newItem = {
       id: crypto.randomUUID(),
       categoryId,
       name,
+      nameEn,
       price1,
       price2
     };
@@ -30,13 +32,13 @@ export const menuItemService = {
     return newItem;
   },
 
-  update: (id: string, name: string, price1: number, price2: number): MenuItem | null => {
+  update: (id: string, name: string, nameEn: string, price1: number, price2: number): MenuItem | null => {
     const allItems = localStorage.getItem(STORAGE_KEY);
     const items = allItems ? JSON.parse(allItems) : [];
     const itemIndex = items.findIndex((item: MenuItem) => item.id === id);
     if (itemIndex === -1) return null;
 
-    const updatedItem = { ...items[itemIndex], name, price1, price2 };
+    const updatedItem = { ...items[itemIndex], name, nameEn, price1, price2 };
     items[itemIndex] = updatedItem;
     localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
     return updatedItem;
