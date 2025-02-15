@@ -11,23 +11,24 @@ export const menuCategoryService = {
     return categories ? JSON.parse(categories) : [];
   },
 
-  create: (name: string): MenuCategory => {
+  create: (name: string, nameEn: string): MenuCategory => {
     const categories = menuCategoryService.getAll();
     const newCategory = {
       id: crypto.randomUUID(),
-      name
+      name,
+      nameEn
     };
     categories.push(newCategory);
     localStorage.setItem(STORAGE_KEY, JSON.stringify(categories));
     return newCategory;
   },
 
-  update: (id: string, name: string): MenuCategory | null => {
+  update: (id: string, name: string, nameEn: string): MenuCategory | null => {
     const categories = menuCategoryService.getAll();
     const categoryIndex = categories.findIndex(cat => cat.id === id);
     if (categoryIndex === -1) return null;
 
-    const updatedCategory = { ...categories[categoryIndex], name };
+    const updatedCategory = { ...categories[categoryIndex], name, nameEn };
     categories[categoryIndex] = updatedCategory;
     localStorage.setItem(STORAGE_KEY, JSON.stringify(categories));
     return updatedCategory;
