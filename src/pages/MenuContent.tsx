@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { menuCategoryService } from '../services/menuCategoryService';
 import { Link } from 'react-router-dom';
+import { useAuth } from '../contexts/AuthContext';
 
 interface MenuCategory {
   id: string;
@@ -16,20 +17,21 @@ const MenuContent = () => {
   const [editingCategoryNameEn, setEditingCategoryNameEn] = useState('');
   const [editingCategory, setEditingCategory] = useState<MenuCategory | null>(null);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const {accessToken} = useAuth();
 
   useEffect(() => {
     loadCategories();
   }, []);
 
-  const loadCategories = () => {
-    const allCategories = menuCategoryService.getAll();
+  const loadCategories = async () => {
+    const allCategories = await menuCategoryService.getAll(accessToken);
     setCategories(allCategories);
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newCategoryName.trim() || !newCategoryNameEn.trim()) return;
-    menuCategoryService.create(newCategoryName, newCategoryNameEn);
+    await menuCategoryService.create(accessToken, newCategoryName, newCategoryNameEn);
     setNewCategoryName('');
     setNewCategoryNameEn('');
     loadCategories();
@@ -42,11 +44,11 @@ const MenuContent = () => {
     setIsEditModalOpen(true);
   };
 
-  const handleEditSubmit = (e: React.FormEvent) => {
+  const handleEditSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!editingCategoryName.trim() || !editingCategoryNameEn.trim() || !editingCategory) return;
 
-    menuCategoryService.update(editingCategory.id, editingCategoryName, editingCategoryNameEn);
+    await menuCategoryService.update(accessToken, editingCategory.id, editingCategoryName, editingCategoryNameEn);
     setEditingCategory(null);
     setEditingCategoryName('');
     setEditingCategoryNameEn('');
@@ -61,9 +63,9 @@ const MenuContent = () => {
     setIsEditModalOpen(false);
   };
 
-  const handleDelete = (id: string) => {
+  const handleDelete = async (id: string) => {
     if (window.confirm('Bu kategoriyle birlikte kategoriye bağlı tüm menü içerikleri silinecek. Onaylıyor musunuz?')) {
-      menuCategoryService.delete(id);
+      await menuCategoryService.delete(accessToken, id);
       loadCategories();
     }
   };
@@ -104,7 +106,7 @@ const MenuContent = () => {
           <ul className="divide-y divide-gray-200">
             {categories.map((category) => (
               <li key={category.id} className="p-4 flex items-center justify-between">
-                <Link to={`/menu-items/${category.id}`} className="text-gray-900 hover:text-blue-600">{category.name}</Link>
+                <Link to={`/menu-items/${category.id}`} className="text-gray-900 hover:text-blue-600">{category.nameTr}</Link>
                 <div className="flex gap-2">
                   <button
                     onClick={() => handleEdit(category)}

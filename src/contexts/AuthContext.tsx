@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { createContext, useContext, useState, ReactNode, useEffect } from 'react';
 import { authService } from '../services/authService';
 
 interface AuthContextType {
@@ -24,33 +24,23 @@ interface AuthProviderProps {
 
 export const AuthProvider = ({ children }: AuthProviderProps) => {
   const [accessToken, setAccessToken] = useState<string | null>(null);
-  const [refreshTokenTimeout, setRefreshTokenTimeout] = useState<NodeJS.Timeout>();
-
-  const startRefreshTokenTimer = (expiresIn: number) => {
-    const timeout = setTimeout(refreshAccessToken, (expiresIn - 60) * 1000);
-    setRefreshTokenTimeout(timeout);
-  };
-
-  const stopRefreshTokenTimer = () => {
-    if (refreshTokenTimeout) {
-      clearTimeout(refreshTokenTimeout);
-      setRefreshTokenTimeout(undefined);
-    }
-  };
+  const [refreshToken, setRefreshToken] = useState<string | null>(null);
 
   const refreshAccessToken = async () => {
     try {
-      const refreshToken = authService.getRefreshTokenFromCookie();
+      setRefreshToken(authService.getRefreshTokenFromCookie());
       if (refreshToken) {
         const tokens = await authService.refreshTokens(refreshToken);
         setAccessToken(tokens.accessToken);
-        startRefreshTokenTimer(3600); // Assuming token expires in 1 hour
+        setRefreshToken(tokens.refreshToken);
       } else {
         setAccessToken(null);
+        setRefreshToken(null);
       }
     } catch (error) {
       console.error('Failed to refresh token:', error);
       setAccessToken(null);
+      setRefreshToken(null);
     }
   };
 
@@ -58,8 +48,9 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     try {
       const tokens = await authService.login({ email, password });
       setAccessToken(tokens.accessToken);
-      startRefreshTokenTimer(3600); // Assuming token expires in 1 hour
+      setRefreshToken(tokens.refreshToken);
     } catch (error) {
+      refreshAccessToken();
       console.error('Login failed:', error);
       throw error;
     }
@@ -68,14 +59,11 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   const logout = () => {
     authService.logout();
     setAccessToken(null);
-    stopRefreshTokenTimer();
+    setRefreshToken(null);
   };
 
   useEffect(() => {
     refreshAccessToken();
-    return () => {
-      stopRefreshTokenTimer();
-    };
   }, []);
 
   const value = {

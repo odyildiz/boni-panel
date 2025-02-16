@@ -1,43 +1,85 @@
 interface MenuCategory {
   id: string;
+  slug: string;
   name: string;
+  nameEn: string;
 }
 
-const STORAGE_KEY = 'menuCategories';
+const API_URL = 'http://localhost:8080';
 
-export const menuCategoryService = {
-  getAll: (): MenuCategory[] => {
-    const categories = localStorage.getItem(STORAGE_KEY);
-    return categories ? JSON.parse(categories) : [];
+export const menuCategoryService =  {
+  getAll: async (accessToken: string): Promise<MenuCategory[]> => {
+    if (!accessToken) throw new Error('No access token available');
+    
+    try {
+      const response = await fetch(`${API_URL}/menu/category/list`, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${accessToken}`
+        }
+      });
+      if (!response.ok) throw new Error('Failed to fetch categories');
+      return await response.json();
+    } catch (error) {
+      console.error('Error fetching categories:', error);
+      throw error;
+    }
   },
 
-  create: (name: string, nameEn: string): MenuCategory => {
-    const categories = menuCategoryService.getAll();
-    const newCategory = {
-      id: crypto.randomUUID(),
-      name,
-      nameEn
-    };
-    categories.push(newCategory);
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(categories));
-    return newCategory;
+  create: async (accessToken: string, name: string, nameEn: string): Promise<MenuCategory> => {
+    if (!accessToken) throw new Error('No access token available');
+
+    try {
+      const response = await fetch(`${API_URL}/menu/category/add`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${accessToken}`
+        },
+        body: JSON.stringify({ name, nameEn })
+      });
+      if (!response.ok) throw new Error('Failed to create category');
+      return response.json();
+    } catch (error) {
+      console.error('Error creating category:', error);
+      throw error;
+    }
   },
 
-  update: (id: string, name: string, nameEn: string): MenuCategory | null => {
-    const categories = menuCategoryService.getAll();
-    const categoryIndex = categories.findIndex(cat => cat.id === id);
-    if (categoryIndex === -1) return null;
+  update: async (accessToken: string, id: string, name: string, nameEn: string): Promise<MenuCategory> => {
+    if (!accessToken) throw new Error('No access token available');
 
-    const updatedCategory = { ...categories[categoryIndex], name, nameEn };
-    categories[categoryIndex] = updatedCategory;
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(categories));
-    return updatedCategory;
+    try {
+      const response = await fetch(`${API_URL}/menu/category/${id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${accessToken}`
+        },
+        body: JSON.stringify({ name, nameEn })
+      });
+      if (!response.ok) throw new Error('Failed to update category');
+      return response.json();
+    } catch (error) {
+      console.error('Error updating category:', error);
+      throw error;
+    }
   },
 
-  delete: (id: string): boolean => {
-    const categories = menuCategoryService.getAll();
-    const filteredCategories = categories.filter(cat => cat.id !== id);
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(filteredCategories));
-    return categories.length !== filteredCategories.length;
+  delete: async (accessToken: string, id: string): Promise<void> => {
+    if (!accessToken) throw new Error('No access token available');
+
+    try {
+      const response = await fetch(`${API_URL}/menu/category/${id}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${accessToken}`
+        }
+      });
+      if (!response.ok) throw new Error('Failed to delete category');
+    } catch (error) {
+      console.error('Error deleting category:', error);
+      throw error;
+    }
   }
 };
