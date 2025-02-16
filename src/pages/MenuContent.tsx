@@ -73,7 +73,7 @@ const MenuContent = () => {
       <h1 className="text-2xl font-bold mb-4">Menü Kategorileri</h1>
       
       <form onSubmit={handleSubmit} className="mb-6">
-        <div className="grid grid-cols-2 gap-2">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
           <input
             type="text"
             value={newCategoryName}
@@ -90,7 +90,7 @@ const MenuContent = () => {
           />
           <button
             type="submit"
-            className="col-span-2 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 focus:outline-none"
+            className="md:col-span-2 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 focus:outline-none"
           >
             Ekle
           </button>
