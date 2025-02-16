@@ -1,10 +1,13 @@
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
+import { useAuth } from '../contexts/AuthContext';
 import { Bars3Icon, XMarkIcon } from '@heroicons/react/24/outline';
 import boniLogo from '../../boni-logo.jpg';
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
+  const { isAuthenticated, logout } = useAuth();
+  const navigate = useNavigate();
 
   const toggleNavbar = () => {
     setIsOpen(!isOpen);
@@ -19,6 +22,7 @@ const Navbar = () => {
             <h2 className="text-white font-semibold hover:text-gray-300">Boni İçerik Yönetim Paneli</h2>
           </Link>
           <div className="hidden md:block">
+          {isAuthenticated && (
             <div className="ml-10 flex items-baseline space-x-4">
               <Link
                 to="/menu-content"
@@ -32,7 +36,17 @@ const Navbar = () => {
               >
                 Genel İçerikler
               </Link>
+                <button
+                  onClick={() => {
+                    logout();
+                    navigate('/login');
+                  }}
+                  className="text-white hover:bg-gray-700 px-3 py-2 rounded-md text-sm font-medium"
+                >
+                  Çıkış Yap
+                </button>
             </div>
+          )}
           </div>
           <div className="-mr-2 flex md:hidden">
             <button
@@ -52,6 +66,7 @@ const Navbar = () => {
 
       {/* Mobile menu */}
       <div className={`${isOpen ? 'block' : 'hidden'} md:hidden`}>
+      {isAuthenticated && (
         <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3">
           <Link
             to="/menu-content"
@@ -67,7 +82,16 @@ const Navbar = () => {
           >
             Genel İçerikler
           </Link>
+          <button
+            onClick={() => {
+              logout();
+              navigate('/login');
+            }}
+            className="text-white hover:bg-gray-700 px-3 py-2 rounded-md text-sm font-medium" >
+            Çıkış Yap
+          </button>
         </div>
+        )}
       </div>
     </nav>
   );
