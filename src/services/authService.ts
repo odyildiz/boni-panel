@@ -19,6 +19,7 @@ export function createAuthService() {
     login: async (credentials: LoginCredentials): Promise<AuthTokens> => {
       const response = await fetch(`${API_URL}/panel/auth/login`, {
         method: 'POST',
+        credentials: 'include',
         headers: {
           'Content-Type': 'application/json',
         },
@@ -34,13 +35,12 @@ export function createAuthService() {
       return tokens;
     },
 
-    refreshTokens: async (csrfToken: string): Promise<AuthTokens> => {
+    refreshTokens: async (): Promise<AuthTokens> => {
       const response = await fetch(`${API_URL}/panel/auth/refresh`, {
         method: 'POST',
-        credentials: "include",
+        credentials: 'include',
         headers: {
-          'Content-Type': 'application/json',
-          'X-XSRF-TOKEN': csrfToken
+          'Content-Type': 'application/json'
         }
       });
 

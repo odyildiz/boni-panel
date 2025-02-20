@@ -8,7 +8,6 @@ interface AuthContextType {
   login: (email: string, password: string) => Promise<void>;
   logout: () => void;
   refreshAccessToken: () => Promise<string>;
-  getCsrfToken: () => Promise<string | undefined>;
   isAuthenticated: boolean;
 }
 
@@ -33,8 +32,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 
   const refreshAccessToken = async () => {
     try {
-      var csrfToken = await getCsrfToken();
-      const tokens = await authService.refreshTokens(csrfToken);
+      const tokens = await authService.refreshTokens();
       if (tokens.accessToken) {
         setAccessToken(tokens.accessToken);
         return tokens.accessToken;
@@ -57,13 +55,6 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     }
   };
 
-  const getCsrfToken = async () => {
-    const csrfToken= document.cookie
-        .split('; ')
-        .find(row => row.startsWith('XSRF-TOKEN='))
-    return csrfToken ? csrfToken.split('=')[1] : '';
-  }
-
   const logout = () => {
     authService.logout();
     setAccessToken(null);
@@ -74,7 +65,6 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     login,
     logout,
     refreshAccessToken,
-    getCsrfToken,
     isAuthenticated: !!accessToken
   };
 

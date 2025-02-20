@@ -6,16 +6,15 @@ interface RequestConfig extends RequestInit {
 }
 
 export function useApi() {
-  const { accessToken, refreshAccessToken, getCsrfToken } = useAuth();
+  const { accessToken, refreshAccessToken } = useAuth();
 
   const request = async (endpoint: string, config: RequestConfig = {}) => {
     try {
-      const csrfToken = await getCsrfToken();
-      const response = await apiClient(endpoint, config, accessToken, csrfToken);
+      const response = await apiClient(endpoint, config, accessToken);
 
       if (response.status === 403) {
         const newToken = await refreshAccessToken();
-        return await apiClient(endpoint, config, newToken, csrfToken);
+        return await apiClient(endpoint, config, newToken);
       }
 
       return response;
