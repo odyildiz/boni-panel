@@ -6,7 +6,7 @@ import { useMenuCategoryService } from '../services/menuCategoryService';
 interface MenuItem {
   id: string;
   categoryId: string;
-  name: string;
+  nameTr: string;
   nameEn: string;
   price1: number;
   price2: number;
@@ -72,7 +72,7 @@ const MenuItems = () => {
 
   const handleEdit = (item: MenuItem) => {
     setEditingItem(item);
-    setEditingItemName(item.name);
+    setEditingItemName(item.nameTr);
     setEditingItemNameEn(item.nameEn);
     setEditingItemPrice1(item.price1.toString());
     setEditingItemPrice2(item.price2 ? item.price2.toString() : '');
@@ -165,7 +165,7 @@ const MenuItems = () => {
               <li key={item.id} className="p-4 flex items-center justify-between">
                 <div>
                   <div>
-                    <span className="text-gray-900 font-medium">{item.name}</span>
+                    <span className="text-gray-900 font-medium">{item.nameTr}</span>
                     <span className="text-gray-500 text-sm ml-2">({item.nameEn})</span>
                   </div>
                   <div className="text-sm text-gray-500">
