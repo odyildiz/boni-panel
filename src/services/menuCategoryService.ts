@@ -21,10 +21,10 @@ export function useMenuCategoryService() {
             }
         },
 
-        create: async (name: string, nameEn: string): Promise<MenuCategory> => {
+        create: async (nameTr: string, nameEn: string): Promise<MenuCategory> => {
             try {
                 const response = await api.post('/menu/category/add', {
-                    name,
+                    nameTr,
                     nameEn
                 });
                 return response.json();
@@ -34,10 +34,10 @@ export function useMenuCategoryService() {
             }
         },
 
-        update: async (id: string, name: string, nameEn: string): Promise<MenuCategory> => {
+        update: async (id: string, nameTr: string, nameEn: string): Promise<MenuCategory> => {
             try {
                 const response = await api.put(`/menu/category/${id}`, {
-                    name,
+                    nameTr,
                     nameEn
                 });
                 return response.json();
