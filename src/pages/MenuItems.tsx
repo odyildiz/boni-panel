@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
-import { menuItemService } from '../services/menuItemService';
-import { menuCategoryService } from '../services/menuCategoryService';
+import { useMenuItemService } from '../services/menuItemService';
+import { useMenuCategoryService } from '../services/menuCategoryService';
 
 interface MenuItem {
   id: string;
   categoryId: string;
   name: string;
+  nameEn: string;
   price1: number;
   price2: number;
 }
@@ -25,6 +26,8 @@ const MenuItems = () => {
   const [editingItemPrice1, setEditingItemPrice1] = useState('');
   const [editingItemPrice2, setEditingItemPrice2] = useState('');
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const menuCategoryService = useMenuCategoryService();
+  const menuItemService = useMenuItemService();
 
   useEffect(() => {
     if (categoryId) {
@@ -33,24 +36,24 @@ const MenuItems = () => {
     }
   }, [categoryId]);
 
-  const loadItems = () => {
+  const loadItems = async () => {
     if (categoryId) {
-      const allItems = menuItemService.getAll(categoryId);
+      const allItems = await menuItemService.getAll(categoryId);
       setItems(allItems);
     }
   };
 
-  const loadCategoryName = () => {
+  const loadCategoryName = async () => {
     if (categoryId) {
-      const categories = menuCategoryService.getAll();
+      const categories = await menuCategoryService.getAll();
       const category = categories.find(cat => cat.id === categoryId);
       if (category) {
-        setCategoryName(category.name);
+        setCategoryName(category.nameTr);
       }
     }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newItemName.trim() || !newItemNameEn.trim() || !newItemPrice1.trim() || !categoryId) return;
 
@@ -59,7 +62,7 @@ const MenuItems = () => {
 
     if (isNaN(price1)) return;
 
-    menuItemService.create(categoryId, newItemName, newItemNameEn, price1, price2);
+    await menuItemService.create(categoryId, newItemName, newItemNameEn, price1, price2);
     setNewItemName('');
     setNewItemNameEn('');
     setNewItemPrice1('');
@@ -76,7 +79,7 @@ const MenuItems = () => {
     setIsEditModalOpen(true);
   };
 
-  const handleEditSubmit = (e: React.FormEvent) => {
+  const handleEditSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!editingItemName.trim() || !editingItemNameEn.trim() || !editingItemPrice1.trim() || !editingItem) return;
 
@@ -85,7 +88,7 @@ const MenuItems = () => {
 
     if (isNaN(price1)) return;
 
-    menuItemService.update(editingItem.id, editingItemName, editingItemNameEn, price1, price2);
+    await menuItemService.update(editingItem.id, editingItemName, editingItemNameEn, price1, price2);
     setEditingItem(null);
     setEditingItemName('');
     setEditingItemNameEn('');
@@ -103,9 +106,9 @@ const MenuItems = () => {
     setIsEditModalOpen(false);
   };
 
-  const handleDelete = (id: string) => {
+  const handleDelete = async (id: string) => {
     if (window.confirm('Bu menü öğesini silmek istediğinizden emin misiniz?')) {
-      menuItemService.delete(id);
+      await menuItemService.delete(id);
       loadItems();
     }
   };

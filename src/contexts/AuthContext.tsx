@@ -1,10 +1,14 @@
-import { createContext, useContext, useState, ReactNode, useEffect } from 'react';
-import { authService } from '../services/authService';
+import { createContext, useContext, useState, ReactNode } from 'react';
+import { createAuthService } from '../services/authService';
+
+const authService = createAuthService();
 
 interface AuthContextType {
   accessToken: string | null;
   login: (email: string, password: string) => Promise<void>;
   logout: () => void;
+  refreshAccessToken: () => Promise<string>;
+  getCsrfToken: () => Promise<string | undefined>;
   isAuthenticated: boolean;
 }
 
@@ -23,24 +27,23 @@ interface AuthProviderProps {
 }
 
 export const AuthProvider = ({ children }: AuthProviderProps) => {
-  const [accessToken, setAccessToken] = useState<string | null>(null);
-  const [refreshToken, setRefreshToken] = useState<string | null>(null);
+  const [accessToken, setAccessToken] = useState<string | null>(
+    () => localStorage.getItem('accessToken')
+  );
 
   const refreshAccessToken = async () => {
     try {
-      setRefreshToken(authService.getRefreshTokenFromCookie());
-      if (refreshToken) {
-        const tokens = await authService.refreshTokens(refreshToken);
+      var csrfToken = await getCsrfToken();
+      const tokens = await authService.refreshTokens(csrfToken);
+      if (tokens.accessToken) {
         setAccessToken(tokens.accessToken);
-        setRefreshToken(tokens.refreshToken);
-      } else {
-        setAccessToken(null);
-        setRefreshToken(null);
+        return tokens.accessToken;
       }
+      throw new Error('No access token received');
     } catch (error) {
       console.error('Failed to refresh token:', error);
-      setAccessToken(null);
-      setRefreshToken(null);
+      authService.logout();
+      throw error;
     }
   };
 
@@ -48,28 +51,30 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     try {
       const tokens = await authService.login({ email, password });
       setAccessToken(tokens.accessToken);
-      setRefreshToken(tokens.refreshToken);
     } catch (error) {
-      refreshAccessToken();
       console.error('Login failed:', error);
       throw error;
     }
   };
 
+  const getCsrfToken = async () => {
+    const csrfToken= document.cookie
+        .split('; ')
+        .find(row => row.startsWith('XSRF-TOKEN='))
+    return csrfToken ? csrfToken.split('=')[1] : '';
+  }
+
   const logout = () => {
     authService.logout();
     setAccessToken(null);
-    setRefreshToken(null);
   };
-
-  useEffect(() => {
-    refreshAccessToken();
-  }, []);
 
   const value = {
     accessToken,
     login,
     logout,
+    refreshAccessToken,
+    getCsrfToken,
     isAuthenticated: !!accessToken
   };
 
