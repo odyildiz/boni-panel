@@ -1,8 +1,84 @@
 import { useState, useEffect } from 'react';
 import { usePhotoService, GalleryPhotoDto, AddPhotoRequest, UpdatePhotoRequest } from '../services/photoService';
+import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors } from '@dnd-kit/core';
+import { arrayMove, SortableContext, sortableKeyboardCoordinates, verticalListSortingStrategy } from '@dnd-kit/sortable';
+import { useSortable } from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
+import { useReorderService } from '../services/reorderService';
+
+interface SortableItemProps {
+  photo: GalleryPhotoDto;
+  onEdit: (photo: GalleryPhotoDto) => void;
+  onDelete: (id: string) => void;
+}
+
+const SortableItem = ({ photo, onEdit, onDelete }: SortableItemProps) => {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+  } = useSortable({ id: photo.id });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+  };
+
+  return (
+    <div ref={setNodeRef} style={style} className="bg-white rounded shadow overflow-hidden w-full flex h-32">
+      <div className="flex items-center px-2">
+        <button
+          className="cursor-grab touch-none"
+          {...attributes}
+          {...listeners}
+        >
+          <svg className="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 8h16M4 16h16" />
+          </svg>
+        </button>
+      </div>
+      <div className="w-40 h-full">
+        <img
+          src={photo.imageUrl}
+          alt={photo.titleTr}
+          className="w-full h-full object-cover"
+        />
+      </div>
+      <div className="flex-1 p-4 flex flex-col justify-between">
+        <div>
+          <h3 className="font-bold text-gray-700 text-lg mb-1">{photo.titleTr}</h3>
+          <p className="text-sm text-gray-600 line-clamp-2">{photo.descriptionTr}</p>
+        </div>
+        <div className="flex justify-end gap-2">
+          <button
+            onClick={() => onEdit(photo)}
+            className="px-3 py-1 text-sm bg-yellow-500 text-white rounded hover:bg-yellow-600 focus:outline-none"
+          >
+            Düzenle
+          </button>
+          <button
+            onClick={() => onDelete(photo.id)}
+            className="px-3 py-1 text-sm bg-red-500 text-white rounded hover:bg-red-600 focus:outline-none"
+          >
+            Kaldır
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
 
 const GalleryContent = () => {
   const [photos, setPhotos] = useState<GalleryPhotoDto[]>([]);
+  const reorderService = useReorderService();
+  const sensors = useSensors(
+    useSensor(PointerSensor),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  );
   const [newPhoto, setNewPhoto] = useState<AddPhotoRequest>({
     imageUrl: '',
     titleTr: '',
@@ -84,6 +160,23 @@ const GalleryContent = () => {
     setIsEditModalOpen(false);
   };
 
+  const handleDragEnd = async (event: any) => {
+    const { active, over } = event;
+
+    if (active.id !== over.id) {
+      setPhotos((items) => {
+        const oldIndex = items.findIndex((item) => item.id === active.id);
+        const newIndex = items.findIndex((item) => item.id === over.id);
+        const newOrder = arrayMove(items, oldIndex, newIndex);
+        
+        // Update the order in the backend
+        reorderService.reorderGalleryPhotos(newOrder.map((item) => item.id));
+        
+        return newOrder;
+      });
+    }
+  };
+
   const handleDelete = async (id: string) => {
     if (window.confirm('Bu fotoğrafı silmek istediğinizden emin misiniz?')) {
       await photoService.remove(id);
@@ -150,40 +243,26 @@ const GalleryContent = () => {
         </div>
       </form>
 
-      <div className="flex flex-col gap-4">
-        {photos.map((photo) => (
-          <div key={photo.id} className="bg-white rounded shadow overflow-hidden w-full flex">
-            <div className="w-2/5">
-              <img
-                src={photo.imageUrl}
-                alt={photo.titleTr}
-                className="w-full h-full object-cover"
+      <div className="flex flex-col gap-2">
+        <DndContext
+          sensors={sensors}
+          collisionDetection={closestCenter}
+          onDragEnd={handleDragEnd}
+        >
+          <SortableContext
+            items={photos}
+            strategy={verticalListSortingStrategy}
+          >
+            {photos.map((photo) => (
+              <SortableItem
+                key={photo.id}
+                photo={photo}
+                onEdit={handleEdit}
+                onDelete={handleDelete}
               />
-            </div>
-            <div className="w-3/5 p-4 flex flex-col justify-between">
-              <div>
-                <h3 className="font-bold text-gray-700 text-xl mb-2">{photo.titleTr}</h3>
-                <div className="mb-4">
-                  <p className="text-sm text-gray-700">{photo.descriptionTr}</p>
-                </div>
-              </div>
-              <div className="flex justify-end gap-2">
-                <button
-                  onClick={() => handleEdit(photo)}
-                  className="px-3 py-1 text-sm bg-yellow-500 text-white rounded hover:bg-yellow-600 focus:outline-none"
-                >
-                  Düzenle
-                </button>
-                <button
-                  onClick={() => handleDelete(photo.id)}
-                  className="px-3 py-1 text-sm bg-red-500 text-white rounded hover:bg-red-600 focus:outline-none"
-                >
-                  Kaldır
-                </button>
-              </div>
-            </div>
-          </div>
-        ))}
+            ))}
+          </SortableContext>
+        </DndContext>
       </div>
 
       {isEditModalOpen && editingPhoto && (

@@ -2,6 +2,11 @@ import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { useMenuItemService } from '../services/menuItemService';
 import { useMenuCategoryService } from '../services/menuCategoryService';
+import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors } from '@dnd-kit/core';
+import { arrayMove, SortableContext, sortableKeyboardCoordinates, verticalListSortingStrategy } from '@dnd-kit/sortable';
+import { useSortable } from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
+import { useReorderService } from '../services/reorderService';
 
 interface MenuItem {
   id: string;
@@ -12,9 +17,77 @@ interface MenuItem {
   price2: number;
 }
 
+interface SortableItemProps {
+  item: MenuItem;
+  onEdit: (item: MenuItem) => void;
+  onDelete: (id: string) => void;
+}
+
+const SortableItem = ({ item, onEdit, onDelete }: SortableItemProps) => {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+  } = useSortable({ id: item.id });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+  };
+
+  return (
+    <li ref={setNodeRef} style={style} className="p-4 flex items-center justify-between bg-white">
+      <div className="flex items-center gap-4 w-full">
+        <button
+          className="cursor-grab touch-none"
+          {...attributes}
+          {...listeners}
+        >
+          <svg className="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 8h16M4 16h16" />
+          </svg>
+        </button>
+        <div className="flex-grow">
+          <div>
+            <span className="text-gray-900 font-medium">{item.nameTr}</span>
+            <span className="text-gray-500 text-sm ml-2">({item.nameEn})</span>
+          </div>
+          <div className="text-sm text-gray-500">
+            <span className="mr-4">Fiyat 1: ₺{item.price1}</span>
+            {item.price2 ? <span>Fiyat 2: ₺{item.price2}</span> : null}
+          </div>
+        </div>
+        <div className="flex gap-2">
+          <button
+            onClick={() => onEdit(item)}
+            className="px-3 py-1 text-sm bg-yellow-500 text-white rounded hover:bg-yellow-600 focus:outline-none"
+          >
+            Düzenle
+          </button>
+          <button
+            onClick={() => onDelete(item.id)}
+            className="px-3 py-1 text-sm bg-red-500 text-white rounded hover:bg-red-600 focus:outline-none"
+          >
+            Kaldır
+          </button>
+        </div>
+      </div>
+    </li>
+  );
+};
+
 const MenuItems = () => {
   const { categoryId } = useParams<{ categoryId: string }>();
   const [items, setItems] = useState<MenuItem[]>([]);
+  const reorderService = useReorderService();
+  const sensors = useSensors(
+    useSensor(PointerSensor),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  );
   const [categoryName, setCategoryName] = useState('');
   const [newItemName, setNewItemName] = useState('');
   const [newItemNameEn, setNewItemNameEn] = useState('');
@@ -113,6 +186,23 @@ const MenuItems = () => {
     }
   };
 
+  const handleDragEnd = async (event: any) => {
+    const { active, over } = event;
+
+    if (active.id !== over.id && categoryId) {
+      setItems((items) => {
+        const oldIndex = items.findIndex((item) => item.id === active.id);
+        const newIndex = items.findIndex((item) => item.id === over.id);
+        const newOrder = arrayMove(items, oldIndex, newIndex);
+        
+        // Update the order in the backend
+        reorderService.reorderMenuItems(categoryId, newOrder.map((item) => item.id));
+        
+        return newOrder;
+      });
+    }
+  };
+
   return (
     <div className="w-full max-w-4xl mx-auto">
       <h1 className="text-2xl font-bold mb-4">{categoryName}</h1>
@@ -160,36 +250,27 @@ const MenuItems = () => {
         {items.length === 0 ? (
           <p className="p-4 text-gray-500">No items found</p>
         ) : (
-          <ul className="divide-y divide-gray-200">
-            {items.map((item) => (
-              <li key={item.id} className="p-4 flex items-center justify-between">
-                <div>
-                  <div>
-                    <span className="text-gray-900 font-medium">{item.nameTr}</span>
-                    <span className="text-gray-500 text-sm ml-2">({item.nameEn})</span>
-                  </div>
-                  <div className="text-sm text-gray-500">
-                    <span className="mr-4">Fiyat 1: ₺{item.price1}</span>
-                    {item.price2 ? <span>Fiyat 2: ₺{item.price2}</span> : null}
-                  </div>
-                </div>
-                <div className="flex gap-2">
-                  <button
-                    onClick={() => handleEdit(item)}
-                    className="px-3 py-1 text-sm bg-yellow-500 text-white rounded hover:bg-yellow-600 focus:outline-none"
-                  >
-                    Düzenle
-                  </button>
-                  <button
-                    onClick={() => handleDelete(item.id)}
-                    className="px-3 py-1 text-sm bg-red-500 text-white rounded hover:bg-red-600 focus:outline-none"
-                  >
-                    Kaldır
-                  </button>
-                </div>
-              </li>
-            ))}
-          </ul>
+          <DndContext
+            sensors={sensors}
+            collisionDetection={closestCenter}
+            onDragEnd={handleDragEnd}
+          >
+            <SortableContext
+              items={items}
+              strategy={verticalListSortingStrategy}
+            >
+              <ul className="divide-y divide-gray-200">
+                {items.map((item) => (
+                  <SortableItem
+                    key={item.id}
+                    item={item}
+                    onEdit={handleEdit}
+                    onDelete={handleDelete}
+                  />
+                ))}
+              </ul>
+            </SortableContext>
+          </DndContext>
         )}
       </div>
 

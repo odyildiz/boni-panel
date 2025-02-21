@@ -1,15 +1,82 @@
 import React, {useState, useEffect} from 'react';
 import {useMenuCategoryService} from '../services/menuCategoryService';
 import {Link} from 'react-router-dom';
+import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors } from '@dnd-kit/core';
+import { arrayMove, SortableContext, sortableKeyboardCoordinates, verticalListSortingStrategy } from '@dnd-kit/sortable';
+import { useSortable } from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
+import { useReorderService } from '../services/reorderService';
 
 interface MenuCategory {
     id: string;
     nameTr: string;
     nameEn: string;
+    order?: number;
 }
+
+interface SortableItemProps {
+    category: MenuCategory;
+    onEdit: (category: MenuCategory) => void;
+    onDelete: (id: string) => void;
+}
+
+const SortableItem = ({ category, onEdit, onDelete }: SortableItemProps) => {
+    const {
+        attributes,
+        listeners,
+        setNodeRef,
+        transform,
+        transition,
+    } = useSortable({ id: category.id });
+
+    const style = {
+        transform: CSS.Transform.toString(transform),
+        transition,
+    };
+
+    return (
+        <li ref={setNodeRef} style={style} className="p-4 flex items-center justify-between bg-white">
+            <div className="flex items-center gap-4 w-full">
+                <button
+                    className="cursor-grab touch-none"
+                    {...attributes}
+                    {...listeners}
+                >
+                    <svg className="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 8h16M4 16h16" />
+                    </svg>
+                </button>
+                <Link to={`/menu-items/${category.id}`} className="text-gray-900 hover:text-blue-600 flex-grow">
+                    {category.nameTr}
+                </Link>
+                <div className="flex gap-2">
+                    <button
+                        onClick={() => onEdit(category)}
+                        className="px-3 py-1 text-sm bg-yellow-500 text-white rounded hover:bg-yellow-600 focus:outline-none"
+                    >
+                        Düzenle
+                    </button>
+                    <button
+                        onClick={() => onDelete(category.id)}
+                        className="px-3 py-1 text-sm bg-red-500 text-white rounded hover:bg-red-600 focus:outline-none"
+                    >
+                        Kaldır
+                    </button>
+                </div>
+            </div>
+        </li>
+    );
+};
 
 const MenuContent = () => {
     const [categories, setCategories] = useState<MenuCategory[]>([]);
+    const reorderService = useReorderService();
+    const sensors = useSensors(
+        useSensor(PointerSensor),
+        useSensor(KeyboardSensor, {
+            coordinateGetter: sortableKeyboardCoordinates,
+        })
+    );
     const [newCategoryName, setNewCategoryName] = useState('');
     const [newCategoryNameEn, setNewCategoryNameEn] = useState('');
     const [editingCategoryName, setEditingCategoryName] = useState('');
@@ -60,6 +127,23 @@ const MenuContent = () => {
         setIsEditModalOpen(false);
     };
 
+    const handleDragEnd = async (event: any) => {
+        const { active, over } = event;
+
+        if (active.id !== over.id) {
+            setCategories((items) => {
+                const oldIndex = items.findIndex((item) => item.id === active.id);
+                const newIndex = items.findIndex((item) => item.id === over.id);
+                const newOrder = arrayMove(items, oldIndex, newIndex);
+                
+                // Update the order in the backend
+                reorderService.reorderMenuCategories(newOrder.map((item) => item.id));
+                
+                return newOrder;
+            });
+        }
+    };
+
     const handleDelete = async (id: string) => {
         if (window.confirm('Bu kategoriyle birlikte kategoriye bağlı tüm menü içerikleri silinecek. Onaylıyor musunuz?')) {
           await menuCategoryService.delete(id);
@@ -102,28 +186,27 @@ const MenuContent = () => {
                 {categories.length === 0 ? (
                     <p className="p-4 text-gray-500">No categories found</p>
                 ) : (
-                    <ul className="divide-y divide-gray-200">
-                        {categories.map((category) => (
-                            <li key={category.id} className="p-4 flex items-center justify-between">
-                                <Link to={`/menu-items/${category.id}`}
-                                      className="text-gray-900 hover:text-blue-600">{category.nameTr}</Link>
-                                <div className="flex gap-2">
-                                    <button
-                                        onClick={() => handleEdit(category)}
-                                        className="px-3 py-1 text-sm bg-yellow-500 text-white rounded hover:bg-yellow-600 focus:outline-none"
-                                    >
-                                        Düzenle
-                                    </button>
-                                    <button
-                                        onClick={() => handleDelete(category.id)}
-                                        className="px-3 py-1 text-sm bg-red-500 text-white rounded hover:bg-red-600 focus:outline-none"
-                                    >
-                                        Kaldır
-                                    </button>
-                                </div>
-                            </li>
-                        ))}
-                    </ul>
+                    <DndContext
+                        sensors={sensors}
+                        collisionDetection={closestCenter}
+                        onDragEnd={handleDragEnd}
+                    >
+                        <SortableContext
+                            items={categories}
+                            strategy={verticalListSortingStrategy}
+                        >
+                            <ul className="divide-y divide-gray-200">
+                                {categories.map((category) => (
+                                    <SortableItem
+                                        key={category.id}
+                                        category={category}
+                                        onEdit={handleEdit}
+                                        onDelete={handleDelete}
+                                    />
+                                ))}
+                            </ul>
+                        </SortableContext>
+                    </DndContext>
                 )}
             </div>
 
