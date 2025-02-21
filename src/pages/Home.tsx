@@ -13,11 +13,11 @@ const Home = () => {
           <p className="text-gray-600">Menü kategorilerini ve öğelerini yönetin</p>
         </Link>
         <Link
-          to="/general-content"
+          to="/gallery-content"
           className="block p-6 bg-white rounded-lg shadow-lg hover:shadow-xl transition-shadow"
         >
-          <h2 className="text-blue-600 text-2xl font-semibold mb-3">Genel İçerikler</h2>
-          <p className="text-gray-600">Genel site içeriklerini yönetin</p>
+          <h2 className="text-blue-600 text-2xl font-semibold mb-3">Galeri İçeriği</h2>
+          <p className="text-gray-600">Galeri içeriklerini yönetin</p>
         </Link>
       </div>
     </div>

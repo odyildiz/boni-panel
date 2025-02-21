@@ -3,7 +3,7 @@ import './App.css'
 import { HashRouter as Router, Routes, Route } from 'react-router-dom';
 import Navbar from './components/Navbar';
 import MenuContent from './pages/MenuContent';
-import GeneralContent from './pages/GeneralContent';
+import GalleryContent from './pages/GalleryContent';
 import MenuItems from './pages/MenuItems';
 import Home from './pages/Home';
 import { Login } from './pages/Login';
@@ -21,7 +21,7 @@ function App() {
               <Route path="/login" element={<Login />} />
               <Route path="/" element={<PrivateRoute><Home /></PrivateRoute>} />
               <Route path="/menu-content" element={<PrivateRoute><MenuContent /></PrivateRoute>} />
-              <Route path="/general-content" element={<PrivateRoute><GeneralContent /></PrivateRoute>} />
+              <Route path="/gallery-content" element={<PrivateRoute><GalleryContent /></PrivateRoute>} />
               <Route path="/menu-items/:categoryId" element={<PrivateRoute><MenuItems /></PrivateRoute>} />
             </Routes>
           </div>

@@ -31,10 +31,10 @@ const Navbar = () => {
                 Menü İçeriği
               </Link>
               <Link
-                to="/general-content"
+                to="/gallery-content"
                 className="text-white hover:bg-gray-700 px-3 py-2 rounded-md text-sm font-medium"
               >
-                Genel İçerikler
+                Galeri İçeriği
               </Link>
                 <button
                   onClick={() => {
@@ -76,11 +76,11 @@ const Navbar = () => {
             Menü İçeriği
           </Link>
           <Link
-            to="/general-content"
+            to="/gallery-content"
             className="text-white hover:bg-gray-700 block px-3 py-2 rounded-md text-base font-medium"
             onClick={() => setIsOpen(false)}
           >
-            Genel İçerikler
+            Galeri İçeriği
           </Link>
           <button
             onClick={() => {
