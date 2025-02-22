@@ -10,15 +10,20 @@ export function useApi() {
 
   const request = async (endpoint: string, config: RequestConfig = {}) => {
     try {
-      const response = await apiClient(endpoint, config, accessToken);
+      var response = await apiClient(endpoint, config, accessToken);
 
       if (response.status === 403) {
         const newToken = await refreshAccessToken();
-        return await apiClient(endpoint, config, newToken);
+        response = await apiClient(endpoint, config, newToken);
+      }
+
+      if (response.status === 403) {
+        alert('İşlem esnasında bir hata gerçekleşti!');
       }
 
       return response;
     } catch (error) {
+      alert('İşlem esnasında bir hata gerçekleşti!');
       throw error;
     }
   };
