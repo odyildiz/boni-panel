@@ -11,7 +11,7 @@ function storeTokens(tokens: AuthTokens) {
   localStorage.setItem('accessToken', tokens.accessToken);
 }
 
-const API_URL = 'http://localhost:8080';
+const API_URL = import.meta.env?.VITE_BASE_API_URL || 'http://localhost:8080';
 
 export function createAuthService() {
 
