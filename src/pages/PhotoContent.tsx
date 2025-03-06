@@ -71,7 +71,7 @@ const SortableItem = ({ photo, onEdit, onDelete }: SortableItemProps) => {
   );
 };
 
-const GalleryContent = () => {
+const PhotoContent = () => {
   const [photos, setPhotos] = useState<GalleryPhotoDto[]>([]);
   const reorderService = useReorderService();
   const sensors = useSensors(
@@ -187,14 +187,14 @@ const GalleryContent = () => {
 
   return (
     <div className="w-full max-w-4xl mx-auto">
-      <h1 className="text-2xl font-bold mb-4">Galeri İçeriği</h1>
+      <h1 className="text-2xl font-bold mb-4">Fotoğraf İçeriği</h1>
       
       <div className="mb-4 flex space-x-4">
         <Link 
-          to="/photo-content" 
+          to="/gallery-content" 
           className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 focus:outline-none"
         >
-          Fotoğraf İçeriği
+          Galeri İçeriği
         </Link>
         <Link 
           to="/photo-label-content" 
@@ -355,4 +355,4 @@ const GalleryContent = () => {
   );
 };
 
-export default GalleryContent;
+export default PhotoContent;
