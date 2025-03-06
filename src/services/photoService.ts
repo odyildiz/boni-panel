@@ -7,6 +7,13 @@ export interface GalleryPhotoDto {
   titleEn: string;
   descriptionTr: string;
   descriptionEn: string;
+  labels?: PhotoLabelDto[];
+}
+
+export interface PhotoLabelDto {
+  id: string;
+  nameTr: string;
+  nameEn: string;
 }
 
 export interface AddPhotoRequest {
@@ -15,6 +22,7 @@ export interface AddPhotoRequest {
   titleEn: string;
   descriptionTr: string;
   descriptionEn: string;
+  labelIds?: number[];
 }
 
 export interface UpdatePhotoRequest {
@@ -23,6 +31,7 @@ export interface UpdatePhotoRequest {
   descriptionTr: string;
   descriptionEn: string;
   imageUrl: string;
+  labelIds?: number[];
 }
 
 export function usePhotoService() {

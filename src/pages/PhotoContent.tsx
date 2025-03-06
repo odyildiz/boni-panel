@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
-import { usePhotoService, GalleryPhotoDto, AddPhotoRequest, UpdatePhotoRequest } from '../services/photoService';
+import { usePhotoService, GalleryPhotoDto, AddPhotoRequest, UpdatePhotoRequest, PhotoLabelDto } from '../services/photoService';
+import { usePhotoLabelService } from '../services/photoLabelService';
 import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors } from '@dnd-kit/core';
 import { arrayMove, SortableContext, sortableKeyboardCoordinates, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import { useSortable } from '@dnd-kit/sortable';
@@ -73,6 +74,7 @@ const SortableItem = ({ photo, onEdit, onDelete }: SortableItemProps) => {
 
 const PhotoContent = () => {
   const [photos, setPhotos] = useState<GalleryPhotoDto[]>([]);
+  const [labels, setLabels] = useState<PhotoLabelDto[]>([]);
   const reorderService = useReorderService();
   const sensors = useSensors(
     useSensor(PointerSensor),
@@ -85,15 +87,28 @@ const PhotoContent = () => {
     titleTr: '',
     titleEn: '',
     descriptionTr: '',
-    descriptionEn: ''
+    descriptionEn: '',
+    labelIds: []
   });
   const [editingPhoto, setEditingPhoto] = useState<GalleryPhotoDto | null>(null);
+  const [selectedLabelIds, setSelectedLabelIds] = useState<number[]>([]);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const photoService = usePhotoService();
+  const photoLabelService = usePhotoLabelService();
 
   useEffect(() => {
     loadPhotos();
+    loadLabels();
   }, []);
+  
+  const loadLabels = async () => {
+    try {
+      const allLabels = await photoLabelService.getAll();
+      setLabels(allLabels);
+    } catch (error) {
+      console.error('Error loading labels:', error);
+    }
+  };
 
   const loadPhotos = async () => {
     const allPhotos = await photoService.getAll();
@@ -106,6 +121,28 @@ const PhotoContent = () => {
       ...prev,
       [name]: value
     }));
+  };
+  
+  const handleLabelChange = (labelId: number) => {
+    setNewPhoto(prev => {
+      const currentLabelIds = prev.labelIds || [];
+      const updatedLabelIds = currentLabelIds.includes(labelId)
+        ? currentLabelIds.filter(id => id !== labelId)
+        : [...currentLabelIds, labelId];
+      
+      return {
+        ...prev,
+        labelIds: updatedLabelIds
+      };
+    });
+  };
+  
+  const handleEditLabelChange = (labelId: number) => {
+    const updatedLabelIds = selectedLabelIds.includes(labelId)
+      ? selectedLabelIds.filter(id => id !== labelId)
+      : [...selectedLabelIds, labelId];
+    
+    setSelectedLabelIds(updatedLabelIds);
   };
 
   const handleEditInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -128,13 +165,17 @@ const PhotoContent = () => {
       titleTr: '',
       titleEn: '',
       descriptionTr: '',
-      descriptionEn: ''
+      descriptionEn: '',
+      labelIds: []
     });
     loadPhotos();
   };
 
   const handleEdit = (photo: GalleryPhotoDto) => {
     setEditingPhoto(photo);
+    // Initialize selected label IDs from photo's labels if available
+    const labelIds = photo.labels ? photo.labels.map(label => Number(label.id)) : [];
+    setSelectedLabelIds(labelIds);
     setIsEditModalOpen(true);
   };
 
@@ -147,7 +188,8 @@ const PhotoContent = () => {
       titleTr: editingPhoto.titleTr,
       titleEn: editingPhoto.titleEn,
       descriptionTr: editingPhoto.descriptionTr,
-      descriptionEn: editingPhoto.descriptionEn
+      descriptionEn: editingPhoto.descriptionEn,
+      labelIds: selectedLabelIds
     };
 
     await photoService.update(editingPhoto.id, updateRequest);
@@ -235,6 +277,25 @@ const PhotoContent = () => {
               rows={3}
             />
           </div>
+          <div className="mt-4">
+            <label className="block text-sm font-medium text-gray-700 mb-2">Etiketler</label>
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
+              {labels.map((label) => (
+                <div key={label.id} className="flex items-center">
+                  <input
+                    type="checkbox"
+                    id={`label-${label.id}`}
+                    checked={newPhoto.labelIds?.includes(Number(label.id)) || false}
+                    onChange={() => handleLabelChange(Number(label.id))}
+                    className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                  />
+                  <label htmlFor={`label-${label.id}`} className="ml-2 block text-sm text-gray-900">
+                    {label.nameTr}
+                  </label>
+                </div>
+              ))}
+            </div>
+          </div>
           <button
             type="submit"
             className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 focus:outline-none"
@@ -315,6 +376,25 @@ const PhotoContent = () => {
                     className="p-2 border border-gray-300 rounded focus:outline-none focus:border-blue-500"
                     rows={3}
                   />
+                </div>
+              </div>
+              <div className="mt-4">
+                <label className="block text-sm font-medium text-gray-700 mb-2">Etiketler</label>
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
+                  {labels.map((label) => (
+                    <div key={label.id} className="flex items-center">
+                      <input
+                        type="checkbox"
+                        id={`edit-label-${label.id}`}
+                        checked={selectedLabelIds.includes(Number(label.id))}
+                        onChange={() => handleEditLabelChange(Number(label.id))}
+                        className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                      />
+                      <label htmlFor={`edit-label-${label.id}`} className="ml-2 block text-sm text-gray-900">
+                        {label.nameTr}
+                      </label>
+                    </div>
+                  ))}
                 </div>
               </div>
               <div className="flex justify-end gap-2 mt-4">
