@@ -72,285 +72,30 @@ const SortableItem = ({ photo, onEdit, onDelete }: SortableItemProps) => {
 };
 
 const GalleryContent = () => {
-  const [photos, setPhotos] = useState<GalleryPhotoDto[]>([]);
-  const reorderService = useReorderService();
-  const sensors = useSensors(
-    useSensor(PointerSensor),
-    useSensor(KeyboardSensor, {
-      coordinateGetter: sortableKeyboardCoordinates,
-    })
-  );
-  const [newPhoto, setNewPhoto] = useState<AddPhotoRequest>({
-    imageUrl: '',
-    titleTr: '',
-    titleEn: '',
-    descriptionTr: '',
-    descriptionEn: ''
-  });
-  const [editingPhoto, setEditingPhoto] = useState<GalleryPhotoDto | null>(null);
-  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-  const photoService = usePhotoService();
-
-  useEffect(() => {
-    loadPhotos();
-  }, []);
-
-  const loadPhotos = async () => {
-    const allPhotos = await photoService.getAll();
-    setPhotos(allPhotos);
-  };
-
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const { name, value } = e.target;
-    setNewPhoto(prev => ({
-      ...prev,
-      [name]: value
-    }));
-  };
-
-  const handleEditInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const { name, value } = e.target;
-    if (editingPhoto) {
-      setEditingPhoto(prev => ({
-        ...prev!,
-        [name]: value
-      }));
-    }
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!newPhoto.imageUrl.trim() || !newPhoto.titleTr.trim() || !newPhoto.titleEn.trim()) return;
-
-    await photoService.create(newPhoto);
-    setNewPhoto({
-      imageUrl: '',
-      titleTr: '',
-      titleEn: '',
-      descriptionTr: '',
-      descriptionEn: ''
-    });
-    loadPhotos();
-  };
-
-  const handleEdit = (photo: GalleryPhotoDto) => {
-    setEditingPhoto(photo);
-    setIsEditModalOpen(true);
-  };
-
-  const handleEditSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!editingPhoto || !editingPhoto.imageUrl.trim() || !editingPhoto.titleTr.trim() || !editingPhoto.titleEn.trim()) return;
-
-    const updateRequest: UpdatePhotoRequest = {
-      imageUrl: editingPhoto.imageUrl,
-      titleTr: editingPhoto.titleTr,
-      titleEn: editingPhoto.titleEn,
-      descriptionTr: editingPhoto.descriptionTr,
-      descriptionEn: editingPhoto.descriptionEn
-    };
-
-    await photoService.update(editingPhoto.id, updateRequest);
-    setEditingPhoto(null);
-    setIsEditModalOpen(false);
-    loadPhotos();
-  };
-
-  const handleEditCancel = () => {
-    setEditingPhoto(null);
-    setIsEditModalOpen(false);
-  };
-
-  const handleDragEnd = async (event: any) => {
-    const { active, over } = event;
-
-    if (active.id !== over.id) {
-      setPhotos((items) => {
-        const oldIndex = items.findIndex((item) => item.id === active.id);
-        const newIndex = items.findIndex((item) => item.id === over.id);
-        const newOrder = arrayMove(items, oldIndex, newIndex);
-        
-        // Update the order in the backend
-        reorderService.reorderGalleryPhotos(newOrder.map((item) => item.id));
-        
-        return newOrder;
-      });
-    }
-  };
-
-  const handleDelete = async (id: string) => {
-    if (window.confirm('Bu fotoğrafı silmek istediğinizden emin misiniz?')) {
-      await photoService.remove(id);
-      loadPhotos();
-    }
-  };
-
   return (
-    <div className="w-full max-w-4xl mx-auto">
-      <h1 className="text-2xl font-bold mb-4">Galeri İçeriği</h1>
+    <div className="w-full max-w-4xl mx-auto p-8">
+      <h1 className="text-3xl font-bold mb-8 text-center">Galeri İçeriği</h1>
       
-      <div className="mb-4 flex space-x-4">
+      <div className="flex flex-col md:flex-row justify-center items-center gap-6">
         <Link 
           to="/photo-content" 
-          className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 focus:outline-none"
+          className="w-full md:w-64 py-4 px-6 bg-blue-600 text-white text-lg font-medium rounded-lg shadow-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 transition-all duration-200 flex items-center justify-center"
         >
+          <svg className="w-6 h-6 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+          </svg>
           Fotoğraf İçeriği
         </Link>
         <Link 
           to="/photo-label-content" 
-          className="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600 focus:outline-none"
+          className="w-full md:w-64 py-4 px-6 bg-green-600 text-white text-lg font-medium rounded-lg shadow-lg hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-opacity-50 transition-all duration-200 flex items-center justify-center"
         >
+          <svg className="w-6 h-6 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
+          </svg>
           Fotoğraf Etiketleri
         </Link>
       </div>
-
-      <form onSubmit={handleSubmit} className="mb-6">
-        <div className="grid grid-cols-1 gap-4">
-          <input
-            type="text"
-            name="imageUrl"
-            value={newPhoto.imageUrl}
-            onChange={handleInputChange}
-            placeholder="Fotoğraf URL"
-            className="p-2 border border-gray-300 rounded focus:outline-none focus:border-blue-500"
-          />
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <input
-              type="text"
-              name="titleTr"
-              value={newPhoto.titleTr}
-              onChange={handleInputChange}
-              placeholder="Başlık (Türkçe)"
-              className="p-2 border border-gray-300 rounded focus:outline-none focus:border-blue-500"
-            />
-            <input
-              type="text"
-              name="titleEn"
-              value={newPhoto.titleEn}
-              onChange={handleInputChange}
-              placeholder="Title (English)"
-              className="p-2 border border-gray-300 rounded focus:outline-none focus:border-blue-500"
-            />
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <textarea
-              name="descriptionTr"
-              value={newPhoto.descriptionTr}
-              onChange={handleInputChange}
-              placeholder="Açıklama (Türkçe)"
-              className="p-2 border border-gray-300 rounded focus:outline-none focus:border-blue-500"
-              rows={3}
-            />
-            <textarea
-              name="descriptionEn"
-              value={newPhoto.descriptionEn}
-              onChange={handleInputChange}
-              placeholder="Description (English)"
-              className="p-2 border border-gray-300 rounded focus:outline-none focus:border-blue-500"
-              rows={3}
-            />
-          </div>
-          <button
-            type="submit"
-            className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 focus:outline-none"
-          >
-            Ekle
-          </button>
-        </div>
-      </form>
-
-      <div className="flex flex-col gap-2">
-        <DndContext
-          sensors={sensors}
-          collisionDetection={closestCenter}
-          onDragEnd={handleDragEnd}
-        >
-          <SortableContext
-            items={photos}
-            strategy={verticalListSortingStrategy}
-          >
-            {photos.map((photo) => (
-              <SortableItem
-                key={photo.id}
-                photo={photo}
-                onEdit={handleEdit}
-                onDelete={handleDelete}
-              />
-            ))}
-          </SortableContext>
-        </DndContext>
-      </div>
-
-      {isEditModalOpen && editingPhoto && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
-          <div className="bg-white p-6 rounded-lg shadow-lg w-full max-w-2xl">
-            <h2 className="text-xl font-semibold mb-4">Fotoğraf Düzenle</h2>
-            <form onSubmit={handleEditSubmit}>
-              <div className="grid grid-cols-1 gap-4">
-                <input
-                  type="text"
-                  name="imageUrl"
-                  value={editingPhoto.imageUrl}
-                  onChange={handleEditInputChange}
-                  placeholder="Fotoğraf URL"
-                  className="p-2 border border-gray-300 rounded focus:outline-none focus:border-blue-500"
-                />
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <input
-                    type="text"
-                    name="titleTr"
-                    value={editingPhoto.titleTr}
-                    onChange={handleEditInputChange}
-                    placeholder="Başlık (Türkçe)"
-                    className="p-2 border border-gray-300 rounded focus:outline-none focus:border-blue-500"
-                  />
-                  <input
-                    type="text"
-                    name="titleEn"
-                    value={editingPhoto.titleEn}
-                    onChange={handleEditInputChange}
-                    placeholder="Title (English)"
-                    className="p-2 border border-gray-300 rounded focus:outline-none focus:border-blue-500"
-                  />
-                </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <textarea
-                    name="descriptionTr"
-                    value={editingPhoto.descriptionTr}
-                    onChange={handleEditInputChange}
-                    placeholder="Açıklama (Türkçe)"
-                    className="p-2 border border-gray-300 rounded focus:outline-none focus:border-blue-500"
-                    rows={3}
-                  />
-                  <textarea
-                    name="descriptionEn"
-                    value={editingPhoto.descriptionEn}
-                    onChange={handleEditInputChange}
-                    placeholder="Description (English)"
-                    className="p-2 border border-gray-300 rounded focus:outline-none focus:border-blue-500"
-                    rows={3}
-                  />
-                </div>
-              </div>
-              <div className="flex justify-end gap-2 mt-4">
-                <button
-                  type="button"
-                  onClick={handleEditCancel}
-                  className="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600 focus:outline-none"
-                >
-                  İptal
-                </button>
-                <button
-                  type="submit"
-                  className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 focus:outline-none"
-                >
-                  Güncelle
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
     </div>
   );
 };

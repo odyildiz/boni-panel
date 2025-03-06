@@ -87,21 +87,6 @@ const PhotoLabelContent = () => {
     <div className="w-full max-w-4xl mx-auto">
       <h1 className="text-2xl font-bold mb-4">Fotoğraf Etiketleri</h1>
       
-      <div className="mb-4 flex space-x-4">
-        <Link 
-          to="/gallery-content" 
-          className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 focus:outline-none"
-        >
-          Galeri İçeriği
-        </Link>
-        <Link 
-          to="/photo-content" 
-          className="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600 focus:outline-none"
-        >
-          Fotoğraf İçeriği
-        </Link>
-      </div>
-
       <form onSubmit={handleSubmit} className="mb-6">
         <div className="grid grid-cols-1 gap-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
