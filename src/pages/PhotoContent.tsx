@@ -6,7 +6,6 @@ import { arrayMove, SortableContext, sortableKeyboardCoordinates, verticalListSo
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { useReorderService } from '../services/reorderService';
-import { Link } from 'react-router-dom';
 
 interface SortableItemProps {
   photo: GalleryPhotoDto;
@@ -52,6 +51,15 @@ const SortableItem = ({ photo, onEdit, onDelete }: SortableItemProps) => {
         <div>
           <h3 className="font-bold text-gray-700 text-lg mb-1">{photo.titleTr}</h3>
           <p className="text-sm text-gray-600 line-clamp-2">{photo.descriptionTr}</p>
+          {photo.labels && photo.labels.length > 0 && (
+            <div className="flex flex-wrap gap-1 mt-1">
+              {photo.labels.map(label => (
+                <span key={label.id} className="px-2 py-0.5 bg-blue-100 text-blue-800 text-xs rounded-full">
+                  {label.nameTr}
+                </span>
+              ))}
+            </div>
+          )}
         </div>
         <div className="flex justify-end gap-2">
           <button
@@ -122,28 +130,7 @@ const PhotoContent = () => {
       [name]: value
     }));
   };
-  
-  const handleLabelChange = (labelId: number) => {
-    setNewPhoto(prev => {
-      const currentLabelIds = prev.labelIds || [];
-      const updatedLabelIds = currentLabelIds.includes(labelId)
-        ? currentLabelIds.filter(id => id !== labelId)
-        : [...currentLabelIds, labelId];
-      
-      return {
-        ...prev,
-        labelIds: updatedLabelIds
-      };
-    });
-  };
-  
-  const handleEditLabelChange = (labelId: number) => {
-    const updatedLabelIds = selectedLabelIds.includes(labelId)
-      ? selectedLabelIds.filter(id => id !== labelId)
-      : [...selectedLabelIds, labelId];
-    
-    setSelectedLabelIds(updatedLabelIds);
-  };
+
 
   const handleEditInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -279,22 +266,12 @@ const PhotoContent = () => {
           </div>
           <div className="mt-4">
             <label className="block text-sm font-medium text-gray-700 mb-2">Etiketler</label>
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
-              {labels.map((label) => (
-                <div key={label.id} className="flex items-center">
-                  <input
-                    type="checkbox"
-                    id={`label-${label.id}`}
-                    checked={newPhoto.labelIds?.includes(Number(label.id)) || false}
-                    onChange={() => handleLabelChange(Number(label.id))}
-                    className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-                  />
-                  <label htmlFor={`label-${label.id}`} className="ml-2 block text-sm text-gray-900">
-                    {label.nameTr}
-                  </label>
-                </div>
-              ))}
-            </div>
+            <MultiSelect
+              options={labels}
+              selected={newPhoto.labelIds || []}
+              onChange={(selected) => setNewPhoto(prev => ({ ...prev, labelIds: selected }))}
+              placeholder="Etiket seçiniz"
+            />
           </div>
           <button
             type="submit"
@@ -380,22 +357,12 @@ const PhotoContent = () => {
               </div>
               <div className="mt-4">
                 <label className="block text-sm font-medium text-gray-700 mb-2">Etiketler</label>
-                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
-                  {labels.map((label) => (
-                    <div key={label.id} className="flex items-center">
-                      <input
-                        type="checkbox"
-                        id={`edit-label-${label.id}`}
-                        checked={selectedLabelIds.includes(Number(label.id))}
-                        onChange={() => handleEditLabelChange(Number(label.id))}
-                        className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-                      />
-                      <label htmlFor={`edit-label-${label.id}`} className="ml-2 block text-sm text-gray-900">
-                        {label.nameTr}
-                      </label>
-                    </div>
-                  ))}
-                </div>
+                <MultiSelect
+                  options={labels}
+                  selected={selectedLabelIds}
+                  onChange={setSelectedLabelIds}
+                  placeholder="Etiket seçiniz"
+                />
               </div>
               <div className="flex justify-end gap-2 mt-4">
                 <button
@@ -414,6 +381,66 @@ const PhotoContent = () => {
               </div>
             </form>
           </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
+// Add this new MultiSelect component at the bottom of the file
+const MultiSelect = ({ 
+  options, 
+  selected, 
+  onChange,
+  placeholder = 'Select labels'
+}: {
+  options: PhotoLabelDto[],
+  selected: number[],
+  onChange: (selected: number[]) => void,
+  placeholder?: string
+}) => {
+  const [isOpen, setIsOpen] = useState(false);
+
+  const toggleOption = (labelId: number) => {
+    const newSelected = selected.includes(labelId)
+      ? selected.filter(id => id !== labelId)
+      : [...selected, labelId];
+    onChange(newSelected);
+  };
+
+  return (
+    <div className="relative">
+      <button
+        type="button"
+        onClick={() => setIsOpen(!isOpen)}
+        className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:border-blue-500 text-left flex items-center justify-between"
+      >
+        <span className="truncate">
+          {selected.length > 0 
+            ? options.filter(opt => selected.includes(Number(opt.id))).map(opt => opt.nameTr).join(', ')
+            : placeholder}
+        </span>
+        <svg className="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+        </svg>
+      </button>
+
+      {isOpen && (
+        <div className="absolute z-10 w-full mt-1 bg-white border border-gray-200 rounded shadow-lg max-h-60 overflow-y-auto">
+          {options.map((label) => (
+            <label
+              key={label.id}
+              className="flex items-center px-4 py-2 hover:bg-gray-100 cursor-pointer"
+            >
+              <input
+                type="checkbox"
+                checked={selected.includes(Number(label.id))}
+                onChange={() => toggleOption(Number(label.id))}
+                className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+              />
+              <span className="ml-2 text-gray-700">{label.nameTr}</span>
+            </label>
+          ))}
         </div>
       )}
     </div>

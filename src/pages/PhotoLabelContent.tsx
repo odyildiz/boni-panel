@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
 import { usePhotoLabelService, PhotoLabelDto, AddPhotoLabelRequest, UpdatePhotoLabelRequest } from '../services/photoLabelService';
-import { Link } from 'react-router-dom';
 
 const PhotoLabelContent = () => {
   const [labels, setLabels] = useState<PhotoLabelDto[]>([]);
