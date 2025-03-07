@@ -28,8 +28,8 @@ const SortableItem = ({ photo, onEdit, onDelete }: SortableItemProps) => {
   };
 
   return (
-    <div ref={setNodeRef} style={style} className="bg-white rounded shadow overflow-hidden w-full flex h-32">
-      <div className="flex items-center px-2">
+    <div ref={setNodeRef} style={style} className="bg-white rounded shadow overflow-hidden w-full flex flex-col md:flex-row mb-4">
+      <div className="flex md:hidden items-center px-2 py-2 border-b border-gray-100">
         <button
           className="cursor-grab touch-none"
           {...attributes}
@@ -40,19 +40,32 @@ const SortableItem = ({ photo, onEdit, onDelete }: SortableItemProps) => {
           </svg>
         </button>
       </div>
-      <div className="w-40 h-full">
-        <img
-          src={photo.imageUrl}
-          alt={photo.titleTr}
-          className="w-full h-full object-cover"
-        />
+      <div className="flex">
+        <div className="hidden md:flex items-center px-2">
+          <button
+            className="cursor-grab touch-none"
+            {...attributes}
+            {...listeners}
+          >
+            <svg className="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 8h16M4 16h16" />
+            </svg>
+          </button>
+        </div>
+        <div className="w-full md:w-40 h-40 md:h-full">
+          <img
+            src={photo.imageUrl}
+            alt={photo.titleTr}
+            className="w-full h-full object-cover"
+          />
+        </div>
       </div>
       <div className="flex-1 p-4 flex flex-col justify-between">
         <div>
           <h3 className="font-bold text-gray-700 text-lg mb-1">{photo.titleTr}</h3>
-          <p className="text-sm text-gray-600 line-clamp-2">{photo.descriptionTr}</p>
+          <p className="text-sm text-gray-600 line-clamp-2 mb-2">{photo.descriptionTr}</p>
           {photo.labels && photo.labels.length > 0 && (
-            <div className="flex flex-wrap gap-1 mt-1">
+            <div className="flex flex-wrap gap-1 mt-1 mb-3">
               {photo.labels.map(label => (
                 <span key={label.id} className="px-2 py-0.5 bg-blue-100 text-blue-800 text-xs rounded-full">
                   {label.nameTr}
@@ -61,7 +74,7 @@ const SortableItem = ({ photo, onEdit, onDelete }: SortableItemProps) => {
             </div>
           )}
         </div>
-        <div className="flex justify-end gap-2">
+        <div className="flex justify-end gap-2 mt-auto">
           <button
             onClick={() => onEdit(photo)}
             className="px-3 py-1 text-sm bg-yellow-500 text-white rounded hover:bg-yellow-600 focus:outline-none"
